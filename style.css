@@ -102,6 +102,26 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 button.ghost { background: transparent; }
 .form-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* Einsprechen */
+.dictate {
+  display: grid; gap: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+}
+.dictate-head, .dictate-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dictate .hint { margin: 0; font-size: 0.85rem; }
+.dictate textarea { background: var(--surface); }
+.mic { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.mic-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
+.mic[aria-pressed="true"] { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.mic[aria-pressed="true"] .mic-dot { background: var(--surface); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .mic-dot { animation: none !important; } }
+.filled { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--accent-soft); } }
+
 /* Timer */
 .timer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .time { font-size: 2.4rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }

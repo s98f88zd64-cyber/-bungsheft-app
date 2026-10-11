@@ -288,6 +288,117 @@ form.addEventListener('submit', (e) => {
 $('#f-cancel').addEventListener('click', resetForm);
 $('#filter').addEventListener('input', renderList);
 
+// ---------- Einsprechen ----------
+
+const dictateText = $('#dictate-text');
+const dictateStatus = $('#dictate-status');
+
+function flash(el) {
+  el.classList.remove('filled');
+  void el.offsetWidth; // Animation neu starten
+  el.classList.add('filled');
+}
+
+function applyDictation() {
+  const text = dictateText.value.trim();
+  if (!text) {
+    dictateStatus.textContent = 'Erst etwas sagen oder tippen.';
+    return;
+  }
+  const categories = [...new Set(sessions.map((s) => s.category))];
+  const r = parseDictation(text, { categories });
+  const found = [];
+
+  if (r.date) { $('#f-date').value = r.date; flash($('#f-date')); found.push('Datum'); }
+  if (r.duration) { $('#f-duration').value = r.duration; flash($('#f-duration')); found.push('Dauer'); }
+  if (r.category) { $('#f-category').value = r.category; flash($('#f-category')); found.push('Bereich'); }
+  if (r.rating) { rating = r.rating; renderRating(); found.push('Bewertung'); }
+  if (r.notes) {
+    const notes = $('#f-notes');
+    notes.value = notes.value.trim() ? `${notes.value.trim()}\n${r.notes}` : r.notes;
+    flash(notes);
+    found.push('Notizen');
+  }
+
+  const missing = [!r.duration && 'Dauer', !r.category && 'Bereich'].filter(Boolean);
+  dictateStatus.textContent = found.length
+    ? `Erkannt: ${found.join(', ')}.${missing.length ? ` Bitte noch ergänzen: ${missing.join(', ')}.` : ' Kurz prüfen, dann speichern.'}`
+    : 'Nichts erkannt – bitte Felder von Hand ausfüllen.';
+  dictateText.value = '';
+  (missing.length ? $(missing[0] === 'Dauer' ? '#f-duration' : '#f-category') : $('#f-submit')).focus();
+}
+
+$('#dictate-apply').addEventListener('click', applyDictation);
+dictateText.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) applyDictation();
+});
+
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (Recognition) {
+  const mic = $('#mic');
+  mic.hidden = false;
+  let rec = null;
+  let wanted = false; // Nutzer will noch aufnehmen (Browser beendet bei Stille gern von selbst)
+  let base = '';
+
+  const setRecording = (on) => {
+    mic.setAttribute('aria-pressed', String(on));
+    mic.querySelector('.mic-label').textContent = on ? 'Fertig' : 'Einsprechen';
+  };
+
+  const start = () => {
+    rec = new Recognition();
+    rec.lang = 'de-DE';
+    rec.continuous = true;
+    rec.interimResults = true;
+    base = dictateText.value.trim();
+
+    rec.onresult = (e) => {
+      let finalText = '';
+      let interim = '';
+      for (let i = 0; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t; else interim += t;
+      }
+      dictateText.value = [base, finalText.trim(), interim.trim()].filter(Boolean).join(' ');
+    };
+    rec.onerror = (e) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      wanted = false;
+      dictateStatus.textContent = e.error === 'not-allowed' || e.error === 'service-not-allowed'
+        ? 'Mikrofon nicht erlaubt – bitte in den Browser-Einstellungen freigeben.'
+        : `Spracherkennung abgebrochen (${e.error}).`;
+    };
+    rec.onend = () => {
+      if (wanted) { start(); return; } // nach Pause weiterhören
+      setRecording(false);
+      rec = null;
+      if (dictateText.value.trim()) applyDictation();
+    };
+    rec.start();
+  };
+
+  mic.addEventListener('click', () => {
+    if (rec) {
+      wanted = false;
+      rec.stop();
+      return;
+    }
+    wanted = true;
+    dictateStatus.textContent = 'Ich höre zu … tippe auf „Fertig“, wenn du fertig bist.';
+    setRecording(true);
+    try {
+      start();
+    } catch {
+      wanted = false;
+      setRecording(false);
+      dictateStatus.textContent = 'Spracherkennung konnte nicht starten.';
+    }
+  });
+} else {
+  $('#dictate-hint').textContent = 'Tipp: Tippe ins Feld und nutze das Mikrofon deiner Tastatur – dann „Felder ausfüllen“.';
+}
+
 // ---------- Timer (übersteht Neuladen der Seite) ----------
 
 let timer = load(TIMER_KEY, { startedAt: null, elapsed: 0 });

@@ -34,6 +34,20 @@
 
     <section class="card" aria-labelledby="form-h">
       <h2 id="form-h">Session eintragen</h2>
+      <div class="dictate">
+        <div class="dictate-head">
+          <button type="button" id="mic" class="mic" aria-pressed="false" hidden>
+            <span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Einsprechen</span>
+          </button>
+          <span class="hint" id="dictate-hint">Sag einfach alles auf einmal – Datum, Dauer, Stück, wie's lief und Notizen.</span>
+        </div>
+        <textarea id="dictate-text" rows="2" aria-label="Gesprochener oder getippter Text"
+          placeholder="z. B. „Gestern eine Stunde Jagdlied, Mittelteil stabiler, lief gut“"></textarea>
+        <div class="dictate-foot">
+          <button type="button" id="dictate-apply">Felder ausfüllen</button>
+          <span id="dictate-status" class="hint" role="status"></span>
+        </div>
+      </div>
       <form id="session-form" autocomplete="off">
         <input type="hidden" id="f-id">
         <div class="row">
@@ -80,6 +94,7 @@
     </section>
   </main>
 
+  <script src="parse.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
