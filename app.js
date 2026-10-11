@@ -1,6 +1,7 @@
 'use strict';
 
 const STORAGE_KEY = 'uebungsheft.sessions.v1';
+const BLOCK_MINUTES = 50; // ein Übeblock: 50 min üben, 10 min Pause
 const TIMER_KEY = 'uebungsheft.timer.v1';
 
 const $ = (sel) => document.querySelector(sel);
@@ -241,6 +242,7 @@ function resetForm() {
   form.reset();
   $('#f-id').value = '';
   $('#f-date').value = toISODate(new Date());
+  $('#f-duration').value = BLOCK_MINUTES;
   rating = 0;
   renderRating();
   $('#f-submit').textContent = 'Speichern';
@@ -306,7 +308,7 @@ function applyDictation() {
     return;
   }
   const categories = [...new Set(sessions.map((s) => s.category))];
-  const r = parseDictation(text, { categories });
+  const r = parseDictation(text, { categories, blockMinutes: BLOCK_MINUTES });
   const found = [];
 
   if (r.date) { $('#f-date').value = r.date; flash($('#f-date')); found.push('Datum'); }
@@ -320,12 +322,13 @@ function applyDictation() {
     found.push('Notizen');
   }
 
-  const missing = [!r.duration && 'Dauer', !r.category && 'Bereich'].filter(Boolean);
+  if (!r.duration && !$('#f-duration').value) $('#f-duration').value = BLOCK_MINUTES;
+  const durationNote = r.duration ? '' : ` Dauer nicht genannt – steht auf ${$('#f-duration').value} min.`;
   dictateStatus.textContent = found.length
-    ? `Erkannt: ${found.join(', ')}.${missing.length ? ` Bitte noch ergänzen: ${missing.join(', ')}.` : ' Kurz prüfen, dann speichern.'}`
+    ? `Erkannt: ${found.join(', ')}.${durationNote}${r.category ? ' Kurz prüfen, dann speichern.' : ' Bitte noch den Bereich ergänzen.'}`
     : 'Nichts erkannt – bitte Felder von Hand ausfüllen.';
   dictateText.value = '';
-  (missing.length ? $(missing[0] === 'Dauer' ? '#f-duration' : '#f-category') : $('#f-submit')).focus();
+  (r.category ? $('#f-submit') : $('#f-category')).focus();
 }
 
 $('#dictate-apply').addEventListener('click', applyDictation);

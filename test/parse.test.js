@@ -34,6 +34,12 @@ test('Stunden und Minuten kombiniert', () => {
   assert.equal(p('fünfundvierzig Minuten').duration, 45);
 });
 
+test('Übeblöcke à 50 Minuten', () => {
+  assert.equal(p('ein Block Jagdlied').duration, 50);
+  assert.equal(p('zwei Blöcke Bach Fuge').duration, 100);
+  assert.equal(parseDictation('3 Übeblöcke', { today, blockMinutes: 45 }).duration, 135);
+});
+
 test('Uhrzeitspanne', () => {
   assert.equal(p('von 9 bis 10:30 Uhr Etüden').duration, 90);
 });

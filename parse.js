@@ -112,7 +112,7 @@
     return c;
   }
 
-  function parseDuration(text, spans) {
+  function parseDuration(text, spans, blockMinutes) {
     const results = [];
     const add = (re, fn) => results.push(...collect(text, re, fn, spans));
     const total = '(?:(insgesamt|gesamt|total|zusammen)\\s+)?';
@@ -137,6 +137,11 @@
       const h = wordToNumber(m[2]);
       const min = m[3] ? wordToNumber(m[3]) : 0;
       return Number.isNaN(h) || Number.isNaN(min) ? null : Math.round(h * 60 + min);
+    });
+    // „zwei Blöcke“ – ein Übeblock dauert standardmäßig 50 Minuten
+    add(new RegExp(`\\b${total}${NUM}\\s+(?:übe)?bl(?:o|ö|oe)cke?\\b`, flags), (m) => {
+      const n = wordToNumber(m[2]);
+      return Number.isNaN(n) || n > 10 ? null : n * blockMinutes;
     });
     add(new RegExp(`\\b${total}${NUM}\\s*(?:minuten|min\\.?)(?=\\W|$)`, flags), (m) => {
       const n = wordToNumber(m[2]);
@@ -252,14 +257,14 @@
     return notes;
   }
 
-  function parseDictation(input, { today = new Date(), categories = [] } = {}) {
+  function parseDictation(input, { today = new Date(), categories = [], blockMinutes = 50 } = {}) {
     const text = String(input || '').replace(/\s+/g, ' ').trim();
     const result = {};
     if (!text) return result;
     const day = startOfDay(today);
     const spans = [];
 
-    const duration = parseDuration(text, spans);
+    const duration = parseDuration(text, spans, blockMinutes);
     if (duration > 0 && duration <= 24 * 60) result.duration = duration;
     // Bewertung vor Datum, damit „lief heute gut“ nicht am „heute“ zerbricht
     const rating = parseRating(text, spans);
