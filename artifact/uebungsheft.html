@@ -1,0 +1,1050 @@
+<title>Übungsheft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Notenheft – oben Eingabe, darunter Auswertung und Verlauf */
+:root {
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --fg: #1c211e;
+  --muted: #646d68;
+  --line: #dde2dc;
+  --accent: #2f6f5e;
+  --accent-fg: #ffffff;
+  --accent-soft: #e0ede7;
+  --danger: #b0412f;
+  --font-display: "Young Serif", Georgia, serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141816; --surface: #1d2220; --fg: #e9ede9; --muted: #9aa49f; --line: #2d3430;
+    --accent: #72c4a8; --accent-fg: #0f1513; --accent-soft: #213430; --danger: #e47a64;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1d2220; --fg: #e9ede9; --muted: #9aa49f; --line: #2d3430;
+  --accent: #72c4a8; --accent-fg: #0f1513; --accent-soft: #213430; --danger: #e47a64;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.5 var(--font-body); }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 16px; }
+h1, h2 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.2rem; margin-bottom: 12px; }
+h3 { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; font-weight: 600; }
+.sub { margin: 2px 0 0; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0; }
+.hint { color: var(--muted); font-size: 0.875rem; margin: 0; }
+.banner { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; }
+.stat .label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .value { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* Einsprechen */
+.speak textarea { min-height: 128px; font-size: 1.05rem; }
+.speak-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.status { font-size: 0.9rem; color: var(--muted); }
+.status.busy::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 8px; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }
+.queue { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--accent-soft); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; }
+
+form { display: grid; gap: 12px; margin-top: 16px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+input, textarea {
+  font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%;
+}
+textarea { resize: vertical; }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+fieldset { border: 0; padding: 0; margin: 0; }
+legend { font-size: 0.85rem; color: var(--muted); padding: 0; margin-bottom: 4px; }
+#f-rating { display: flex; gap: 6px; }
+#f-rating button { width: 40px; height: 40px; padding: 0; font-size: 1.1rem; }
+#f-rating button[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.filled { animation: flash 1.4s ease-out; }
+@keyframes flash { from { background: var(--accent-soft); border-color: var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .filled, .status.busy::before { animation: none; } }
+
+button {
+  font: inherit; font-size: 0.95rem; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+button.ghost { background: transparent; }
+.buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.timer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.time { font-size: 2.2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.timer.running .time { color: var(--accent); }
+
+.chart { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-items: end; height: 150px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+.bar { width: 100%; max-width: 26px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+.bar.zero { background: var(--line); }
+.bar-label { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+.bar-col.today .bar-label { color: var(--fg); font-weight: 700; }
+.breakdown { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.breakdown li { display: grid; grid-template-columns: minmax(80px, 170px) 1fr 6.5em; gap: 10px; align-items: center; font-size: 0.9rem; }
+.breakdown .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.breakdown .track { display: block; height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; }
+.breakdown .fill { display: block; height: 100%; background: var(--accent); }
+.breakdown .mins { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.list-head h2 { margin: 0; }
+.list-head input { max-width: 200px; }
+.session { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.session .meta { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; min-width: 0; }
+.session .cat { font-weight: 600; }
+.session .dur { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+.session .stars { color: var(--muted); font-size: 0.85rem; }
+.session .notes { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 0.9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.session .actions { display: flex; gap: 4px; align-self: start; }
+.session .actions button { padding: 2px 8px; font-size: 0.8rem; }
+.session .del { color: var(--danger); }
+.session .del.confirm { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.empty { color: var(--muted); text-align: center; margin: 16px 0 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Übungsheft</h1>
+    <p class="sub">Einsprechen, prüfen, speichern</p>
+  </header>
+
+  <p class="banner" id="banner" hidden></p>
+
+  <section class="stats" aria-label="Statistik">
+    <div class="stat"><span class="label">Heute</span><span class="value" id="stat-today">0 min</span></div>
+    <div class="stat"><span class="label">Diese Woche</span><span class="value" id="stat-week">0 min</span></div>
+    <div class="stat"><span class="label">Serie</span><span class="value" id="stat-streak">0 Tage</span></div>
+    <div class="stat"><span class="label">Gesamt</span><span class="value" id="stat-total">0 min</span></div>
+  </section>
+
+  <section class="card speak" aria-labelledby="speak-h">
+    <h2 id="speak-h">Session eintragen</h2>
+    <textarea id="speak-text" aria-label="Was hast du geübt?"
+      placeholder="Tippe hier rein und sprich über das Mikrofon deiner Tastatur, z. B.: „Heute zwei Blöcke, erst Jagdlied, Mittelteil endlich stabil, dann Tonleitern langsam mit Metronom, lief ganz gut“"></textarea>
+    <div class="speak-foot">
+      <button type="button" class="primary" id="speak-apply">Felder ausfüllen</button>
+      <span class="status" id="speak-status" role="status">Wenn du ein paar Sekunden nichts mehr sagst, füllt Claude die Felder automatisch aus.</span>
+    </div>
+
+    <div class="queue" id="queue" hidden>
+      <span id="queue-text"></span>
+      <button type="button" id="queue-save-all">Alle speichern</button>
+    </div>
+
+    <form id="session-form" autocomplete="off">
+      <input type="hidden" id="f-id">
+      <div class="row">
+        <label>Datum<input type="date" id="f-date" required></label>
+        <label>Dauer (min)<input type="number" id="f-duration" min="1" max="1440" required></label>
+      </div>
+      <label>Stück / Bereich<input type="text" id="f-category" list="categories" required maxlength="60"></label>
+      <datalist id="categories"></datalist>
+      <fieldset>
+        <legend>Wie lief's?</legend>
+        <div id="f-rating" role="radiogroup"></div>
+      </fieldset>
+      <label>Notizen<textarea id="f-notes" rows="3" maxlength="4000"></textarea></label>
+      <div class="buttons">
+        <button type="submit" class="primary" id="f-submit">Speichern</button>
+        <button type="button" class="ghost" id="f-cancel" hidden>Abbrechen</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="timer-h">
+    <h2 id="timer-h">Timer</h2>
+    <div class="timer">
+      <span class="time" id="timer-display">00:00:00</span>
+      <div class="buttons">
+        <button type="button" id="timer-toggle" class="primary">Start</button>
+        <button type="button" id="timer-finish" disabled>Übernehmen</button>
+        <button type="button" id="timer-reset" class="ghost" disabled>Zurücksetzen</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="chart-h">
+    <h2 id="chart-h">Letzte 14 Tage</h2>
+    <div id="chart" class="chart"></div>
+    <h3>Nach Stück / Bereich</h3>
+    <ul id="breakdown" class="breakdown"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="list-h">
+    <div class="list-head">
+      <h2 id="list-h">Verlauf</h2>
+      <input type="search" id="filter" placeholder="Suchen…" aria-label="Sessions durchsuchen">
+    </div>
+    <div id="session-list"></div>
+    <p id="empty" class="empty">Lade deine Sessions …</p>
+  </section>
+</div>
+
+<script>
+'use strict';
+
+// Wertet einen frei gesprochenen Satz aus und verteilt ihn auf die Formularfelder.
+// Beispiel: „Gestern eine Stunde Jagdlied, Mittelteil stabiler, lief gut“
+//   → { date: <gestern>, duration: 60, category: 'Jagdlied', rating: 4, notes: 'Mittelteil stabiler' }
+// Felder, die nicht erkannt werden, fehlen im Ergebnis.
+
+(function (root) {
+  const UNITS = {
+    null: 0, ein: 1, eins: 1, eine: 1, einen: 1, einer: 1, zwei: 2, drei: 3, vier: 4, fünf: 5,
+    sechs: 6, sieben: 7, acht: 8, neun: 9, zehn: 10, elf: 11, zwölf: 12, dreizehn: 13,
+    vierzehn: 14, fünfzehn: 15, sechzehn: 16, siebzehn: 17, achtzehn: 18, neunzehn: 19,
+  };
+  const TENS = { zwanzig: 20, dreißig: 30, vierzig: 40, fünfzig: 50, sechzig: 60, siebzig: 70, achtzig: 80, neunzig: 90 };
+  const ORDINAL_STEMS = { ers: 1, drit: 3, sieb: 7, ach: 8 };
+
+  const MONTHS = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
+  const WEEKDAYS = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag'];
+
+  function wordToNumber(word) {
+    if (word == null) return NaN;
+    const w = word.toLowerCase().replace('ss', 'ß');
+    if (/^\d+([.,]\d+)?$/.test(w)) return Number(w.replace(',', '.'));
+    if (w in UNITS) return UNITS[w];
+    if (w in TENS) return TENS[w];
+    if (w === 'hundert' || w === 'einhundert') return 100;
+    const m = w.match(/^([a-zäöüß]+?)und([a-zäöüß]+)$/);
+    if (m && m[1] in UNITS && m[2] in TENS) return UNITS[m[1]] + TENS[m[2]];
+    return NaN;
+  }
+
+  function ordinalToNumber(word) {
+    const w = word.toLowerCase();
+    if (/^\d+\.?$/.test(w)) return parseInt(w, 10);
+    const stem = w.replace(/(sten|ten|ter|tes|te)$/, '');
+    if (stem in ORDINAL_STEMS) return ORDINAL_STEMS[stem];
+    return wordToNumber(stem);
+  }
+
+  const NUM = '(\\d+(?:[.,]\\d+)?|[a-zäöüß]+)';
+  const flags = 'giu';
+
+  // Sucht alle Treffer von `re`, ruft `fn` auf und merkt sich die Textstellen, die aus den Notizen raus sollen.
+  function collect(text, re, fn, spans) {
+    const results = [];
+    for (const m of text.matchAll(re)) {
+      if (overlaps(spans, m.index, m.index + m[0].length)) continue;
+      const value = fn(m);
+      if (value == null || Number.isNaN(value)) continue;
+      spans.push([m.index, m.index + m[0].length]);
+      results.push({ value, index: m.index, match: m });
+    }
+    return results;
+  }
+
+  const overlaps = (spans, a, b) => spans.some(([s, e]) => a < e && b > s);
+
+  function startOfDay(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function toISODate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  // Datum ohne Jahr: das letzte vergangene Vorkommen (nicht in der Zukunft)
+  function pastDate(today, month, day, year) {
+    if (year != null) {
+      if (year < 100) year += 2000;
+      return new Date(year, month, day);
+    }
+    let d = new Date(today.getFullYear(), month, day);
+    if (d > today) d = new Date(today.getFullYear() - 1, month, day);
+    return d;
+  }
+
+  function validDate(d, month, day) {
+    return d.getMonth() === month && d.getDate() === day ? d : null;
+  }
+
+  function parseDate(text, today, spans) {
+    const results = [];
+    const add = (re, fn) => results.push(...collect(text, re, fn, spans));
+
+    add(new RegExp('\\b(?:am\\s+)?(\\d{1,2})\\.\\s?(\\d{1,2})\\.(?:\\s?(\\d{2,4}))?', flags), (m) => {
+      const day = +m[1], month = +m[2] - 1;
+      return validDate(pastDate(today, month, day, m[3] ? +m[3] : null), month, day);
+    });
+    add(new RegExp(`\\b(?:am\\s+)?(\\d{1,2}\\.?|[a-zäöüß]+)\\s+(${MONTHS.join('|')})(?:\\s+(\\d{4}))?\\b`, flags), (m) => {
+      const day = ordinalToNumber(m[1]);
+      if (!(day >= 1 && day <= 31)) return null;
+      const month = MONTHS.indexOf(m[2].toLowerCase());
+      return validDate(pastDate(today, month, day, m[3] ? +m[3] : null), month, day);
+    });
+    add(/\bvorgestern\b/giu, () => addDays(today, -2));
+    add(/\bgestern\b/giu, () => addDays(today, -1));
+    add(/\bheute\b/giu, () => today);
+    add(new RegExp(`\\b(?:(?:am|letzten|letzter|vergangenen)\\s+)?(${WEEKDAYS.join('|')})\\b`, flags), (m) => {
+      const target = WEEKDAYS.indexOf(m[1].toLowerCase());
+      const diff = (today.getDay() - target + 7) % 7;
+      return addDays(today, -diff);
+    });
+
+    if (!results.length) return null;
+    // Konkreteste Angabe gewinnt: die erste in der Liste oben, die gefunden wurde
+    return results[0].value;
+  }
+
+  function addDays(d, n) {
+    const c = new Date(d);
+    c.setDate(c.getDate() + n);
+    return c;
+  }
+
+  function parseDuration(text, spans, blockMinutes) {
+    const results = [];
+    const add = (re, fn) => results.push(...collect(text, re, fn, spans));
+    const total = '(?:(insgesamt|gesamt|total|zusammen)\\s+)?';
+
+    // „von 9 bis 10:30 Uhr“
+    add(/\b(?:von\s+)(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr\s*)?bis\s+(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr)?/giu, (m) => {
+      const start = +m[1] * 60 + (+m[2] || 0);
+      const end = +m[3] * 60 + (+m[4] || 0);
+      const diff = end - start;
+      return diff > 0 && diff <= 12 * 60 ? diff : null;
+    });
+    add(new RegExp(`\\b${total}(?:(eine|ein)\\s+)?(anderthalb|eineinhalb|${NUM}einhalb)\\s+stunden?`, flags), (m) => {
+      if (/^(anderthalb|eineinhalb)$/i.test(m[3])) return 90;
+      const n = wordToNumber(m[4]);
+      return Number.isNaN(n) ? null : n * 60 + 30;
+    });
+    add(new RegExp(`\\b${total}(?:eine\\s+)?(dreiviertel\\s?stunde|halbe\\s+stunde|viertel\\s?stunde)`, flags), (m) => {
+      const w = m[2].toLowerCase().replace(/\s/g, '');
+      return w.startsWith('dreiviertel') ? 45 : w.startsWith('halbe') ? 30 : 15;
+    });
+    add(new RegExp(`\\b${total}${NUM}\\s*(?:stunden?|std\\.?|h)\\b(?:\\s*(?:und\\s+)?${NUM}\\s*(?:minuten|min\\.?)\\b)?`, flags), (m) => {
+      const h = wordToNumber(m[2]);
+      const min = m[3] ? wordToNumber(m[3]) : 0;
+      return Number.isNaN(h) || Number.isNaN(min) ? null : Math.round(h * 60 + min);
+    });
+    // „zwei Blöcke“ – ein Übeblock dauert standardmäßig 50 Minuten
+    add(new RegExp(`\\b${total}${NUM}\\s+(?:übe)?bl(?:o|ö|oe)cke?\\b`, flags), (m) => {
+      const n = wordToNumber(m[2]);
+      return Number.isNaN(n) || n > 10 ? null : n * blockMinutes;
+    });
+    add(new RegExp(`\\b${total}${NUM}\\s*(?:minuten|min\\.?)(?=\\W|$)`, flags), (m) => {
+      const n = wordToNumber(m[2]);
+      return Number.isNaN(n) ? null : Math.round(n);
+    });
+
+    if (!results.length) return null;
+    const totals = results.filter((r) => /^(insgesamt|gesamt|total|zusammen)\b/i.test(r.match[0]));
+    if (totals.length) return totals[0].value;
+    return results.reduce((sum, r) => sum + r.value, 0);
+  }
+
+  const RATING_WORDS = [
+    [/sehr schlecht|katastrophal|furchtbar|schrecklich|grauenhaft/, 1],
+    [/nicht so gut|nicht gut|schlecht|mäßig|mies|zäh/, 2],
+    [/ganz okay|okay|ok|mittel(?:mäßig)?|so lala|geht so|in ordnung/, 3],
+    [/sehr gut|super|hervorragend|großartig|klasse|toll|richtig gut|mega|perfekt|spitze/, 5],
+    [/gut|ordentlich|solide/, 4],
+  ];
+  const RATING_PHRASE = RATING_WORDS.map(([re]) => re.source).join('|');
+
+  function parseRating(text, spans) {
+    const results = [
+      ...collect(text, new RegExp(`\\b${NUM}\\s+(?:von\\s+(?:5|fünf)\\s+)?sternen?\\b`, flags), (m) => wordToNumber(m[1]), spans),
+      ...collect(text, new RegExp(`\\b(?:bewertung|note)\\s*:?\\s*${NUM}\\b`, flags), (m) => wordToNumber(m[1]), spans),
+      ...collect(text, new RegExp(`\\b${NUM}\\s+von\\s+(?:5|fünf)\\b`, flags), (m) => wordToNumber(m[1]), spans),
+      ...collect(
+        text,
+        new RegExp(`\\b(?:es\\s+)?(?:lief|war|ging|klappte|fühlte\\s+sich)(?:\\s+(?:es|heute|insgesamt|eigentlich|alles|das|ganz|echt|ziemlich|wirklich|total))*\\s+(${RATING_PHRASE})(?:\\s+an)?\\b`, flags),
+        (m) => RATING_WORDS.find(([re]) => new RegExp(`^(?:${re.source})$`, 'iu').test(m[1]))?.[1],
+        spans,
+      ),
+    ].filter((r) => r.value >= 1 && r.value <= 5);
+    return results.length ? Math.round(results[0].value) : null;
+  }
+
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  const ARTICLES = /^(?:das|die|der|den|dem|des|mein(?:e|en|em)?|am|an|mit|ein(?:e|en)?)\s+/iu;
+
+  function cleanCategory(s) {
+    let c = s.trim().replace(/[,.;:!?]+$/, '');
+    while (ARTICLES.test(c)) c = c.replace(ARTICLES, '');
+    c = c.replace(/^(?:ich|heute|gestern|wieder|nochmal|noch|mal|vor allem|hauptsächlich)\s+/iu, '').trim();
+    if (!c || c.split(/\s+/).length > 6) return null;
+    return c.charAt(0).toUpperCase() + c.slice(1);
+  }
+
+  function parseCategory(text, categories, spans) {
+    // 1. Ausdrücklich genannt: „Bereich Tonleitern“, „Stück: Jagdlied“
+    const explicit = collect(
+      text,
+      /\b(?:bereich|stück|thema|kategorie)\s*:?\s+([^,.;!?]+?)(?=\s*(?:[,.;!?]|\bund\b|$))/giu,
+      (m) => cleanCategory(m[1]),
+      spans,
+    );
+    if (explicit.length) return explicit[0].value;
+
+    // 2. Ein schon bekannter Bereich kommt im Text vor (längster zuerst, damit „Bach Fuge“ vor „Bach“ greift)
+    const known = [...categories].sort((a, b) => b.length - a.length);
+    let best = null;
+    for (const cat of known) {
+      const re = new RegExp(`(^|[^\\p{L}])(${escapeRegExp(cat)})(?=[^\\p{L}]|$)`, 'iu');
+      const m = text.match(re);
+      if (!m) continue;
+      const start = m.index + m[1].length;
+      const end = start + m[2].length;
+      if (overlaps(spans, start, end)) continue;
+      if (!best || start < best.start) best = { cat, start, end };
+    }
+    if (best) {
+      spans.push([best.start, best.end]);
+      return best.cat;
+    }
+
+    // 3. „Ich habe (heute) das Jagdlied geübt“ — mit Datum/Dauer schon ausgeblendet
+    const masked = mask(text, spans);
+    const m = masked.match(/\b(?:habe?|hab)\s+(?:ich\s+)?(.+?)\s+(?:geübt|gespielt|gemacht|wiederholt|aufgefrischt)\b/iu)
+      || masked.match(/\b(?:geübt|gespielt)\s+(?:habe?|hab)\s+ich\s+([^,.;!?]+)/iu);
+    if (m) {
+      const value = cleanCategory(m[1].replace(/\u0000+/g, ' ').replace(/\s+/g, ' '));
+      if (value) {
+        spans.push([m.index, m.index + m[0].length]);
+        return value;
+      }
+    }
+    return null;
+  }
+
+  // Ersetzt bereits erkannte Stellen durch Platzhalter, damit Indizes gleich bleiben
+  function mask(text, spans) {
+    const arr = text.split(''); // UTF-16-Einheiten, passend zu den Regex-Indizes
+    for (const [s, e] of spans) for (let i = s; i < e; i++) arr[i] = '\u0000';
+    return arr.join('');
+  }
+
+  function cleanNotes(text, spans) {
+    let notes = mask(text, spans)
+      .replace(/\u0000+/g, '\u0000')
+      // Füllwörter, die nur um eine erkannte Angabe herum standen
+      .replace(/(?:\b(?:ich\s+habe|hab\s+ich|habe\s+ich|ich|und|insgesamt|für|lang|lange|etwa|ungefähr|circa|ca\.?)\s*)*\u0000(?:\s*(?:lang|lange|geübt|gespielt))*/giu, '\u0000')
+      .split('\u0000')
+      .map((s) => s.trim().replace(/^[,.;:!?\-–\s]+|[,;:\-–\s]+$/g, '').replace(/^(?:und|aber|also|dann)\s+/iu, ''))
+      .filter((s) => s.length > 1)
+      .join('. ')
+      .replace(/\s+/g, ' ')
+      .replace(/\.\s*\./g, '.')
+      .trim();
+    if (notes) notes = notes.charAt(0).toUpperCase() + notes.slice(1);
+    if (notes && !/[.!?]$/.test(notes)) notes += '.';
+    return notes;
+  }
+
+  function parseDictation(input, { today = new Date(), categories = [], blockMinutes = 50 } = {}) {
+    const text = String(input || '').replace(/\s+/g, ' ').trim();
+    const result = {};
+    if (!text) return result;
+    const day = startOfDay(today);
+    const spans = [];
+
+    const duration = parseDuration(text, spans, blockMinutes);
+    if (duration > 0 && duration <= 24 * 60) result.duration = duration;
+    // Bewertung vor Datum, damit „lief heute gut“ nicht am „heute“ zerbricht
+    const rating = parseRating(text, spans);
+    if (rating) result.rating = rating;
+    const date = parseDate(text, day, spans);
+    if (date && date <= day) result.date = toISODate(date);
+    const category = parseCategory(text, categories, spans);
+    if (category) result.category = category;
+    const notes = cleanNotes(text, spans);
+    if (notes) result.notes = notes;
+    return result;
+  }
+
+  root.parseDictation = parseDictation;
+  if (typeof module !== 'undefined') module.exports = { parseDictation };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+'use strict';
+
+const BLOCK_MINUTES = 50; // ein Übeblock: 50 min üben, 10 min Pause
+const AUTO_FILL_DELAY = 2500; // ms Stille, bis automatisch ausgefüllt wird
+const $ = (sel) => document.querySelector(sel);
+
+let sessions = [];
+let store = null; // db-Collection, sobald verfügbar
+let loaded = false;
+
+// ---------- Datumshilfen (lokale Zeit) ----------
+
+function toISODate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function parseISODate(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(d, n) {
+  const c = new Date(d);
+  c.setDate(c.getDate() + n);
+  return c;
+}
+function startOfWeek(d) {
+  const c = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return addDays(c, -((c.getDay() + 6) % 7));
+}
+const weekdayShort = new Intl.DateTimeFormat('de-DE', { weekday: 'short' });
+const weekdayLong = new Intl.DateTimeFormat('de-DE', { weekday: 'long' });
+const dayLong = new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+function formatMinutes(min) {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
+function newId() {
+  return (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+}
+
+function showBanner(text) {
+  const b = $('#banner');
+  b.textContent = text;
+  b.hidden = !text;
+}
+
+// ---------- Speicher ----------
+
+async function connectStore() {
+  const db = window.claude ? await window.claude.use('db') : null;
+  if (!db) {
+    showBanner('Die Datenbank ist hier nicht verfügbar. Einträge bleiben nur bis zum Neuladen erhalten.');
+    loaded = true;
+    renderAll();
+    return;
+  }
+  store = db.collection('sessions');
+  store.onSnapshot(
+    (snap) => {
+      sessions = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      loaded = true;
+      renderAll();
+    },
+    (err) => {
+      showBanner(err.code === 'revoked'
+        ? 'Der Zugriff auf deine Daten wurde beendet. Lade die Seite neu.'
+        : 'Die Verbindung zur Datenbank ist abgebrochen. Lade die Seite neu.');
+    },
+  );
+}
+
+async function saveSession(s) {
+  if (!store) {
+    const i = sessions.findIndex((x) => x.id === s.id);
+    if (i >= 0) sessions[i] = s; else sessions.push(s);
+    renderAll();
+    return;
+  }
+  const { id, ...body } = s;
+  await store.doc(id).set(body);
+}
+
+async function deleteSession(id) {
+  if (!store) {
+    sessions = sessions.filter((s) => s.id !== id);
+    renderAll();
+    return;
+  }
+  await store.doc(id).delete();
+}
+
+function storeErrorText(e) {
+  if (e && e.code === 'quota_exceeded') return 'Der Speicher ist voll. Lösche alte Einträge, dann klappt es wieder.';
+  if (e && e.code === 'invalid_argument') return 'Du hast hier keine Schreibrechte.';
+  return 'Speichern hat nicht geklappt. Bitte nochmal versuchen.';
+}
+
+// ---------- Statistik & Diagramm ----------
+
+function minutesByDate() {
+  const map = new Map();
+  for (const s of sessions) map.set(s.date, (map.get(s.date) || 0) + s.duration);
+  return map;
+}
+
+function renderStats() {
+  const byDate = minutesByDate();
+  const today = new Date();
+  const todayISO = toISODate(today);
+  $('#stat-today').textContent = formatMinutes(byDate.get(todayISO) || 0);
+
+  const weekStart = toISODate(startOfWeek(today));
+  let week = 0;
+  for (const [date, min] of byDate) if (date >= weekStart && date <= todayISO) week += min;
+  $('#stat-week').textContent = formatMinutes(week);
+
+  let streak = 0;
+  let cursor = byDate.has(todayISO) ? today : addDays(today, -1);
+  while (byDate.has(toISODate(cursor))) { streak++; cursor = addDays(cursor, -1); }
+  $('#stat-streak').textContent = `${streak} ${streak === 1 ? 'Tag' : 'Tage'}`;
+
+  const total = sessions.reduce((sum, s) => sum + s.duration, 0);
+  $('#stat-total').textContent = total < 60 ? `${total} min` : `${(total / 60).toFixed(1).replace('.', ',')} h`;
+}
+
+function renderChart() {
+  const byDate = minutesByDate();
+  const today = new Date();
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = addDays(today, -i);
+    days.push({ d, min: byDate.get(toISODate(d)) || 0 });
+  }
+  const max = Math.max(BLOCK_MINUTES, ...days.map((x) => x.min));
+  $('#chart').replaceChildren(...days.map(({ d, min }, i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-col' + (i === days.length - 1 ? ' today' : '');
+    col.title = `${dayLong.format(d)}: ${formatMinutes(min)}`;
+    const bar = document.createElement('div');
+    bar.className = 'bar' + (min ? '' : ' zero');
+    bar.style.height = `calc(${(min / max) * 100}% - 20px)`;
+    const label = document.createElement('span');
+    label.className = 'bar-label';
+    label.textContent = weekdayShort.format(d).replace('.', '');
+    col.append(bar, label);
+    return col;
+  }));
+}
+
+function categoryList() {
+  const totals = new Map();
+  for (const s of sessions) totals.set(s.category, (totals.get(s.category) || 0) + s.duration);
+  return [...totals].sort((a, b) => b[1] - a[1]);
+}
+
+function renderBreakdown() {
+  const sorted = categoryList();
+  const max = sorted[0]?.[1] || 1;
+  $('#breakdown').replaceChildren(...sorted.map(([name, min]) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="name"></span><span class="track"><span class="fill"></span></span><span class="mins"></span>';
+    li.querySelector('.name').textContent = name;
+    li.querySelector('.name').title = name;
+    li.querySelector('.fill').style.width = `${(min / max) * 100}%`;
+    li.querySelector('.mins').textContent = formatMinutes(min);
+    return li;
+  }));
+  $('#categories').replaceChildren(...sorted.map(([name]) => {
+    const o = document.createElement('option');
+    o.value = name;
+    return o;
+  }));
+}
+
+// ---------- Verlauf ----------
+
+function renderList() {
+  const q = $('#filter').value.trim().toLowerCase();
+  const filtered = sessions
+    .filter((s) => !q || s.category.toLowerCase().includes(q) || (s.notes || '').toLowerCase().includes(q))
+    .sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+  const groups = new Map();
+  for (const s of filtered) {
+    if (!groups.has(s.date)) groups.set(s.date, []);
+    groups.get(s.date).push(s);
+  }
+  $('#session-list').replaceChildren(...[...groups].map(([date, items]) => {
+    const g = document.createElement('div');
+    const h = document.createElement('h3');
+    h.textContent = `${dayLong.format(parseISODate(date))} · ${formatMinutes(items.reduce((a, s) => a + s.duration, 0))}`;
+    g.append(h, ...items.map(renderSession));
+    return g;
+  }));
+  const empty = $('#empty');
+  empty.hidden = loaded && filtered.length > 0;
+  empty.textContent = !loaded ? 'Lade deine Sessions …' : sessions.length ? 'Keine Treffer.' : 'Noch keine Sessions. Sprich oben deinen ersten Eintrag ein.';
+}
+
+function renderSession(s) {
+  const el = document.createElement('article');
+  el.className = 'session';
+  el.innerHTML = `
+    <div class="meta"><span class="cat"></span><span class="dur"></span><span class="stars"></span></div>
+    <div class="actions">
+      <button type="button" class="edit">Bearbeiten</button>
+      <button type="button" class="del">Löschen</button>
+    </div>`;
+  el.querySelector('.cat').textContent = s.category;
+  el.querySelector('.dur').textContent = formatMinutes(s.duration);
+  el.querySelector('.stars').textContent = s.rating ? '★'.repeat(s.rating) + '☆'.repeat(5 - s.rating) : '';
+  if (s.notes) {
+    const p = document.createElement('p');
+    p.className = 'notes';
+    p.textContent = s.notes;
+    el.append(p);
+  }
+  el.querySelector('.edit').addEventListener('click', () => startEdit(s.id));
+  const del = el.querySelector('.del');
+  let armed = null;
+  del.addEventListener('click', async () => {
+    if (!armed) {
+      del.textContent = 'Wirklich löschen?';
+      del.classList.add('confirm');
+      armed = setTimeout(() => { armed = null; del.textContent = 'Löschen'; del.classList.remove('confirm'); }, 4000);
+      return;
+    }
+    clearTimeout(armed);
+    del.disabled = true;
+    try { await deleteSession(s.id); } catch (e) { showBanner(storeErrorText(e)); del.disabled = false; }
+  });
+  return el;
+}
+
+function renderAll() {
+  renderStats();
+  renderChart();
+  renderBreakdown();
+  renderList();
+}
+
+// ---------- Formular ----------
+
+const form = $('#session-form');
+let rating = 0;
+let queue = []; // weitere erkannte Sessions, die nach dem Speichern nachrücken
+
+function renderRating() {
+  $('#f-rating').replaceChildren(...[1, 2, 3, 4, 5].map((n) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(n === rating));
+    b.setAttribute('aria-label', `${n} von 5`);
+    b.textContent = n <= rating ? '★' : '☆';
+    b.addEventListener('click', () => { rating = rating === n ? 0 : n; renderRating(); });
+    return b;
+  }));
+}
+
+function resetForm() {
+  form.reset();
+  $('#f-id').value = '';
+  $('#f-date').value = toISODate(new Date());
+  $('#f-duration').value = BLOCK_MINUTES;
+  rating = 0;
+  renderRating();
+  $('#f-submit').textContent = 'Speichern';
+  $('#f-cancel').hidden = true;
+}
+
+function flash(el) {
+  el.classList.remove('filled');
+  void el.offsetWidth;
+  el.classList.add('filled');
+}
+
+function fillForm(d) {
+  resetForm();
+  if (d.date) $('#f-date').value = d.date;
+  $('#f-duration').value = d.duration || BLOCK_MINUTES;
+  if (d.category) $('#f-category').value = d.category;
+  if (d.notes) $('#f-notes').value = d.notes;
+  rating = d.rating || 0;
+  renderRating();
+  ['#f-date', '#f-duration', '#f-category', '#f-notes'].forEach((s) => flash($(s)));
+  flash($('#f-rating'));
+}
+
+function renderQueue() {
+  const q = $('#queue');
+  q.hidden = queue.length === 0;
+  if (queue.length) {
+    $('#queue-text').textContent = queue.length === 1
+      ? 'Noch 1 weitere Session erkannt – sie erscheint nach dem Speichern.'
+      : `Noch ${queue.length} weitere Sessions erkannt – sie erscheinen nach dem Speichern.`;
+  }
+}
+
+function startEdit(id) {
+  const s = sessions.find((x) => x.id === id);
+  if (!s) return;
+  queue = [];
+  renderQueue();
+  fillForm(s);
+  $('#f-id').value = s.id;
+  $('#f-submit').textContent = 'Änderungen speichern';
+  $('#f-cancel').hidden = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function formData() {
+  return {
+    date: $('#f-date').value,
+    duration: Math.round(Number($('#f-duration').value)),
+    category: $('#f-category').value.trim(),
+    notes: $('#f-notes').value.trim(),
+    rating,
+  };
+}
+
+function toSession(d, existing) {
+  return {
+    id: existing?.id || newId(),
+    createdAt: existing?.createdAt || Date.now(),
+    date: d.date || toISODate(new Date()),
+    duration: d.duration || BLOCK_MINUTES,
+    category: d.category,
+    notes: d.notes || '',
+    rating: d.rating || 0,
+  };
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = formData();
+  if (!data.date || !data.category || !(data.duration > 0)) return;
+  const id = $('#f-id').value;
+  const existing = id ? sessions.find((s) => s.id === id) : null;
+  $('#f-submit').disabled = true;
+  try {
+    await saveSession(toSession(data, existing));
+    setStatus(`Gespeichert: ${data.category}, ${formatMinutes(data.duration)}.`);
+    if (queue.length) {
+      fillForm(queue.shift());
+      renderQueue();
+    } else {
+      resetForm();
+    }
+  } catch (err) {
+    setStatus(storeErrorText(err));
+  } finally {
+    $('#f-submit').disabled = false;
+  }
+});
+
+$('#f-cancel').addEventListener('click', resetForm);
+$('#filter').addEventListener('input', renderList);
+
+$('#queue-save-all').addEventListener('click', async () => {
+  const current = formData();
+  const all = [current, ...queue].filter((d) => d.category);
+  $('#queue-save-all').disabled = true;
+  try {
+    for (const d of all) await saveSession(toSession(d));
+    setStatus(`${all.length} Sessions gespeichert.`);
+    queue = [];
+    renderQueue();
+    resetForm();
+  } catch (err) {
+    setStatus(storeErrorText(err));
+  } finally {
+    $('#queue-save-all').disabled = false;
+  }
+});
+
+// ---------- Einsprechen: Claude wertet den Text aus ----------
+
+const speakText = $('#speak-text');
+const speakStatus = $('#speak-status');
+let samplePromise = window.claude ? window.claude.use('sample') : Promise.resolve(null);
+let claudeOff = false; // nach Ablehnung oder Fehler: lokale Auswertung
+let pending = null;
+let idleTimer = null;
+let lastParsed = '';
+
+function setStatus(text, busy = false) {
+  speakStatus.textContent = text;
+  speakStatus.classList.toggle('busy', busy);
+}
+
+function buildPrompt(text) {
+  const today = new Date();
+  const known = categoryList().map(([n]) => n);
+  return `Du hilfst einem Musikstudenten, sein Übetagebuch zu führen. Er hat gerade frei eingesprochen, was er geübt hat (Spracherkennung, daher evtl. ohne Satzzeichen und mit Hörfehlern).
+
+Heute ist ${weekdayLong.format(today)}, der ${toISODate(today)}.
+Ein Übeblock dauert ${BLOCK_MINUTES} Minuten ("ein Block" = ${BLOCK_MINUTES} min, "zwei Blöcke" = ${2 * BLOCK_MINUTES} min).
+Stücke/Bereiche, die er schon verwendet: ${known.length ? known.join(' | ') : '(noch keine)'}
+
+Zerlege den Text in Übe-Sessions. Regeln:
+- Eine Session pro Stück bzw. Bereich. Nennt er mehrere Stücke, lege mehrere Sessions an.
+- date: "YYYY-MM-DD". "gestern", "am Mittwoch" usw. relativ zu heute auflösen, nie in der Zukunft. Ohne Angabe: heute.
+- duration: Minuten als ganze Zahl. Blöcke umrechnen. Gilt eine Gesamtzeit für mehrere Stücke ohne Aufteilung, teile sie gleichmäßig auf. Ohne jede Zeitangabe: null.
+- category: kurzer Name des Stücks oder Bereichs. Ist es eins der bekannten, übernimm genau dessen Schreibweise. Korrigiere offensichtliche Hörfehler bei Werktiteln und Komponisten.
+- rating: 1 bis 5, wie es lief ("super" 5, "gut" 4, "okay/geht so" 3, "zäh/nicht so gut" 2, "schlecht" 1). Ohne Angabe: null.
+- notes: was er inhaltlich geübt, bemerkt oder sich vorgenommen hat (Stellen, Takte, Tempi, Technik, Probleme, nächste Schritte), als knappe, saubere deutsche Stichpunkte oder kurze Sätze. Keine Angaben wiederholen, die schon in date, duration, category oder rating stehen. Nichts erfinden. Leer lassen, wenn nichts übrig ist.
+
+Antworte nur mit JSON in dieser Form:
+{"sessions":[{"date":"2026-01-31","duration":50,"category":"Jagdlied","rating":4,"notes":"Mittelteil auf Stabilität geübt, jetzt sicher."}]}
+
+Eingesprochener Text:
+"""
+${text.slice(0, 6000)}
+"""`;
+}
+
+function cleanDraft(raw, known) {
+  if (!raw || typeof raw !== 'object') return null;
+  const d = {};
+  if (typeof raw.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.date) && raw.date <= toISODate(new Date())) d.date = raw.date;
+  const dur = Math.round(Number(raw.duration));
+  if (dur > 0 && dur <= 1440) d.duration = dur;
+  if (typeof raw.category === 'string' && raw.category.trim()) {
+    const c = raw.category.trim().slice(0, 60);
+    d.category = known.find((k) => k.toLowerCase() === c.toLowerCase()) || c;
+  }
+  const r = Math.round(Number(raw.rating));
+  if (r >= 1 && r <= 5) d.rating = r;
+  if (typeof raw.notes === 'string' && raw.notes.trim()) d.notes = raw.notes.trim().slice(0, 4000);
+  return d;
+}
+
+async function parseWithClaude(text, signal) {
+  const sample = await samplePromise;
+  if (!sample || claudeOff) return null;
+  try {
+    const result = await sample.json(buildPrompt(text), { signal, modelTier: 'quick' });
+    const known = categoryList().map(([n]) => n);
+    const list = Array.isArray(result?.sessions) ? result.sessions : Array.isArray(result) ? result : [result];
+    return list.map((x) => cleanDraft(x, known)).filter((d) => d && (d.category || d.notes || d.duration));
+  } catch (e) {
+    if (e && e.code === 'cancelled') throw e;
+    if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(e?.code)) claudeOff = true;
+    if (e?.code === 'rate_limited') setStatus('Claude ist gerade ausgelastet – ich werte lokal aus.');
+    return null;
+  }
+}
+
+function parseLocally(text) {
+  const known = categoryList().map(([n]) => n);
+  const r = window.parseDictation ? window.parseDictation(text, { categories: known, blockMinutes: BLOCK_MINUTES }) : {};
+  return Object.keys(r).length ? [r] : [];
+}
+
+async function autofill() {
+  clearTimeout(idleTimer);
+  const text = speakText.value.trim();
+  if (!text) { setStatus('Erst etwas sagen oder tippen.'); return; }
+  if (text === lastParsed) return;
+  lastParsed = text;
+
+  pending?.abort();
+  const ctl = new AbortController();
+  pending = ctl;
+  setStatus('Claude liest mit …', true);
+
+  let drafts;
+  let viaClaude = true;
+  try {
+    drafts = await parseWithClaude(text, ctl.signal);
+  } catch {
+    return; // abgelöst durch neuere Eingabe
+  }
+  if (pending !== ctl) return;
+  pending = null;
+  if (drafts === null) { drafts = parseLocally(text); viaClaude = false; }
+
+  if (!drafts.length) {
+    setStatus('Daraus konnte ich nichts ablesen. Sag z. B. Stück, Dauer und was du geübt hast.');
+    return;
+  }
+  fillForm(drafts[0]);
+  queue = drafts.slice(1);
+  renderQueue();
+  const first = drafts[0];
+  const missing = [!first.category && 'Stück'].filter(Boolean);
+  const durNote = first.duration ? '' : ` Keine Dauer genannt – ${BLOCK_MINUTES} min eingesetzt.`;
+  setStatus(
+    (drafts.length > 1 ? `${drafts.length} Sessions erkannt.` : 'Ausgefüllt.')
+    + durNote
+    + (missing.length ? ' Bitte noch das Stück eintragen.' : ' Kurz prüfen, dann speichern.')
+    + (viaClaude ? '' : ' (Ohne Claude ausgewertet.)'),
+  );
+  speakText.value = '';
+  lastParsed = '';
+  (first.category ? $('#f-submit') : $('#f-category')).focus({ preventScroll: true });
+}
+
+speakText.addEventListener('input', () => {
+  clearTimeout(idleTimer);
+  if (speakText.value.trim().length < 8) return;
+  setStatus('Ich warte, bis du fertig bist …');
+  idleTimer = setTimeout(autofill, AUTO_FILL_DELAY);
+});
+$('#speak-apply').addEventListener('click', () => { lastParsed = ''; autofill(); });
+
+// ---------- Timer (pro Gerät) ----------
+
+const TIMER_KEY = 'uebungsheft.timer.v1';
+function loadTimer() {
+  try { return JSON.parse(localStorage.getItem(TIMER_KEY)) || { startedAt: null, elapsed: 0 }; } catch { return { startedAt: null, elapsed: 0 }; }
+}
+function saveTimer() {
+  try { localStorage.setItem(TIMER_KEY, JSON.stringify(timer)); } catch { /* nur Komfort */ }
+}
+let timer = loadTimer();
+let tick = null;
+const timerElapsed = () => timer.elapsed + (timer.startedAt ? Date.now() - timer.startedAt : 0);
+
+function renderTimer() {
+  const total = Math.floor(timerElapsed() / 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  $('#timer-display').textContent = `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+  const running = Boolean(timer.startedAt);
+  const hasTime = timerElapsed() > 0;
+  $('.timer').classList.toggle('running', running);
+  $('#timer-toggle').textContent = running ? 'Pause' : hasTime ? 'Weiter' : 'Start';
+  $('#timer-finish').disabled = !hasTime;
+  $('#timer-reset').disabled = !hasTime;
+}
+function syncTick() {
+  clearInterval(tick);
+  tick = timer.startedAt ? setInterval(renderTimer, 500) : null;
+  renderTimer();
+}
+$('#timer-toggle').addEventListener('click', () => {
+  timer = timer.startedAt ? { startedAt: null, elapsed: timerElapsed() } : { ...timer, startedAt: Date.now() };
+  saveTimer();
+  syncTick();
+});
+$('#timer-reset').addEventListener('click', () => {
+  timer = { startedAt: null, elapsed: 0 };
+  saveTimer();
+  syncTick();
+});
+$('#timer-finish').addEventListener('click', () => {
+  const minutes = Math.max(1, Math.round(timerElapsed() / 60000));
+  timer = { startedAt: null, elapsed: 0 };
+  saveTimer();
+  syncTick();
+  $('#f-duration').value = minutes;
+  flash($('#f-duration'));
+  form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+// ---------- Start ----------
+
+resetForm();
+syncTick();
+renderAll();
+connectStore();
+</script>
