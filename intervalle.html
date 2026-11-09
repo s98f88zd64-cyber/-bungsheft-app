@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Intervalle vorsingen</title>
+  <style>
+    :root {
+      --bg: #f6f5f1; --surface: #fff; --text: #1d1d1f; --muted: #6b6b70;
+      --border: #e3e1da; --accent: #2f6f5e; --accent-soft: #dcebe5; --back: #2f6f5e; --back-text: #fff;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151517; --surface: #1f1f22; --text: #ececef; --muted: #9a9aa2;
+        --border: #2f2f34; --accent: #6cc3a8; --accent-soft: #23372f; --back: #23372f; --back-text: #ececef;
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { margin: 0; font-size: 1.6rem; }
+    .sub { margin: 0 0 16px; color: var(--muted); }
+    a { color: var(--accent); }
+
+    /* ---------- Karte ---------- */
+    .stage { perspective: 1200px; height: 300px; position: relative; margin: 8px 0 12px; }
+    .card {
+      position: absolute; inset: 0; cursor: pointer; transform-style: preserve-3d;
+      transition: transform .45s cubic-bezier(.2,.7,.2,1), opacity .25s;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .card.flipped { transform: rotateY(180deg); }
+    .card.out { transform: translateX(-120%) rotate(-8deg); opacity: 0; transition: transform .28s ease-in, opacity .28s ease-in; }
+    .card.flipped.out { transform: rotateY(180deg) translateX(120%) rotate(8deg); }
+    .card.in { animation: slideIn .32s cubic-bezier(.2,.8,.2,1); }
+    @keyframes slideIn { from { transform: translateX(110%) rotate(6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    .face {
+      position: absolute; inset: 0; border-radius: 20px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,.08); overflow: hidden; padding: 16px;
+    }
+    .face.back { transform: rotateY(180deg); background: var(--back); color: var(--back-text); border-color: transparent; }
+    .dir { font-size: 4rem; line-height: 1; font-weight: 700; color: var(--accent); }
+    .face.back .dir { color: inherit; opacity: .8; font-size: 2.2rem; }
+    .iv { font-size: 2.6rem; font-weight: 700; text-align: center; line-height: 1.1; }
+    .from { font-size: 1.15rem; color: var(--muted); }
+    .from b { color: var(--text); font-size: 1.5rem; }
+    .target { font-size: 4.5rem; font-weight: 800; line-height: 1; }
+    .face.back .small { opacity: .8; }
+    .bar { position: absolute; left: 0; bottom: 0; height: 6px; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+    .bar.run { animation: countdown linear forwards; }
+    @keyframes countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    .counter { position: absolute; top: 12px; right: 16px; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .idle .iv { font-size: 1.8rem; }
+
+    /* ---------- Bedienung ---------- */
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+    button {
+      font: inherit; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; min-width: 120px; }
+    @media (prefers-color-scheme: dark) { button.primary { color: #10261f; } }
+    .keys { text-align: center; color: var(--muted); font-size: .85rem; margin: -8px 0 20px; }
+    kbd { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font: inherit; font-size: .8rem; background: var(--surface); }
+
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+    summary { cursor: pointer; font-weight: 600; }
+    .group { margin-top: 14px; }
+    .group > span { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips label { display: inline-flex; }
+    .chips input { position: absolute; opacity: 0; pointer-events: none; }
+    .chips span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); cursor: pointer; font-size: .9rem; }
+    .chips input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--text); font-weight: 600; }
+    .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .range { display: flex; align-items: center; gap: 10px; }
+    .range input { flex: 1; accent-color: var(--accent); }
+    .range output { min-width: 3.5em; text-align: right; font-variant-numeric: tabular-nums; }
+    .quick { display: flex; gap: 6px; margin-top: 6px; }
+    .quick button { padding: 4px 10px; font-size: .8rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Intervalle vorsingen</h1>
+  <p class="sub">Karte erscheint, Grundton klingt – Intervall singen, dann kommt die Auflösung. <a href="index.html" id="back-link">← Übungsheft</a></p>
+
+  <div class="stage">
+    <div class="card idle" id="card" role="button" tabindex="0" aria-live="polite">
+      <div class="face front">
+        <span class="counter" id="counter"></span>
+        <div class="dir" id="f-dir">♪</div>
+        <div class="iv" id="f-iv">Auf „Start“ tippen</div>
+        <div class="from" id="f-from">Ton anhören, Intervall singen</div>
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="face back">
+        <div class="dir" id="b-dir"></div>
+        <div class="target" id="b-target"></div>
+        <div class="small" id="b-detail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button type="button" class="primary" id="play">Start</button>
+    <button type="button" id="replay">Ton nochmal</button>
+    <button type="button" id="next">Weiter</button>
+  </div>
+  <p class="keys"><kbd>Leertaste</kbd> Start/Pause · <kbd>→</kbd> weiter · <kbd>R</kbd> Ton nochmal · Karte antippen = umdrehen</p>
+
+  <details open>
+    <summary>Einstellungen</summary>
+
+    <div class="group">
+      <span>Intervalle</span>
+      <div class="chips" id="iv-chips"></div>
+      <div class="quick">
+        <button type="button" data-preset="all">Alle</button>
+        <button type="button" data-preset="basic">Terzen, Quarte, Quinte, Oktave</button>
+        <button type="button" data-preset="small">Sekunden &amp; Terzen</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <span>Richtung</span>
+      <div class="chips" id="dir-chips">
+        <label><input type="radio" name="dir" value="up"><span>↑ aufwärts</span></label>
+        <label><input type="radio" name="dir" value="down"><span>↓ abwärts</span></label>
+        <label><input type="radio" name="dir" value="mix"><span>↕ gemischt</span></label>
+      </div>
+    </div>
+
+    <div class="group">
+      <span>Stimmlage</span>
+      <div class="chips" id="voice-chips"></div>
+    </div>
+
+    <div class="group">
+      <span>Zeit zum Singen</span>
+      <div class="range"><input type="range" id="tempo" min="1" max="8" step="0.5"><output id="tempo-out"></output></div>
+    </div>
+
+    <div class="group">
+      <span>Ablauf</span>
+      <div class="chips">
+        <label><input type="checkbox" id="auto"><span>Automatisch weiter</span></label>
+        <label><input type="checkbox" id="play-target"><span>Zielton zur Kontrolle spielen</span></label>
+      </div>
+    </div>
+  </details>
+</main>
+
+<script>
+'use strict';
+
+// ---------- Musiktheorie ----------
+
+const INTERVALS = [
+  { id: 'k2', name: 'kleine Sekunde', steps: 1, semis: 1 },
+  { id: 'g2', name: 'große Sekunde', steps: 1, semis: 2 },
+  { id: 'k3', name: 'kleine Terz', steps: 2, semis: 3 },
+  { id: 'g3', name: 'große Terz', steps: 2, semis: 4 },
+  { id: 'r4', name: 'reine Quarte', steps: 3, semis: 5 },
+  { id: 'tt', name: 'Tritonus', steps: 3, semis: 6 },
+  { id: 'r5', name: 'reine Quinte', steps: 4, semis: 7 },
+  { id: 'k6', name: 'kleine Sexte', steps: 5, semis: 8 },
+  { id: 'g6', name: 'große Sexte', steps: 5, semis: 9 },
+  { id: 'k7', name: 'kleine Septime', steps: 6, semis: 10 },
+  { id: 'g7', name: 'große Septime', steps: 6, semis: 11 },
+  { id: 'r8', name: 'Oktave', steps: 7, semis: 12 },
+];
+const PRESETS = {
+  all: INTERVALS.map((i) => i.id),
+  basic: ['k3', 'g3', 'r4', 'r5', 'r8'],
+  small: ['k2', 'g2', 'k3', 'g3'],
+};
+
+const VOICES = [
+  { id: 'bass', name: 'Bass', lo: 40, hi: 62 },     // E2–D4
+  { id: 'bari', name: 'Bariton', lo: 43, hi: 65 },  // G2–F4
+  { id: 'tenor', name: 'Tenor', lo: 48, hi: 69 },   // C3–A4
+  { id: 'alt', name: 'Alt', lo: 53, hi: 74 },       // F3–D5
+  { id: 'sopran', name: 'Sopran', lo: 60, hi: 79 }, // C4–G5
+];
+
+const LETTER_SEMIS = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A H
+const NAMES = {
+  0: ['C', 'D', 'E', 'F', 'G', 'A', 'H'],
+  1: ['Cis', 'Dis', 'Eis', 'Fis', 'Gis', 'Ais', 'His'],
+  '-1': ['Ces', 'Des', 'Es', 'Fes', 'Ges', 'As', 'B'],
+};
+// Grundtöne, wie sie im Alltag vorkommen: [Buchstabe, Vorzeichen]
+const START_NOTES = [[0, 0], [0, 1], [1, 0], [2, -1], [2, 0], [3, 0], [3, 1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
+
+const noteName = (n) => NAMES[n.acc][n.letter];
+const midiOf = (letterAbs, acc) => 12 * Math.floor(letterAbs / 7) + LETTER_SEMIS[letterAbs % 7] + acc + 12;
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+function makeCard(ivIds, dirMode, voice, prev) {
+  for (let tries = 0; tries < 200; tries++) {
+    const ivId = rand(ivIds);
+    const iv = INTERVALS.find((i) => i.id === ivId);
+    const dir = dirMode === 'mix' ? rand([1, -1]) : dirMode === 'down' ? -1 : 1;
+    const [letter, acc] = rand(START_NOTES);
+    const octave = 1 + Math.floor(Math.random() * 6);
+    const sAbs = octave * 7 + letter;
+    const sMidi = midiOf(sAbs, acc);
+    const tMidi = sMidi + dir * iv.semis;
+    const tAbs = sAbs + dir * iv.steps;
+    const tAcc = tMidi - midiOf(tAbs, 0);
+    if (Math.abs(tAcc) > 1) continue; // keine Doppelvorzeichen
+    const lo = Math.min(sMidi, tMidi), hi = Math.max(sMidi, tMidi);
+    if (lo < voice.lo || hi > voice.hi) continue;
+    if (prev && prev.iv.id === iv.id && prev.dir === dir && ivIds.length > 1 && tries < 100) continue; // nicht zweimal gleich
+    return {
+      iv, dir,
+      start: { letter, acc, midi: sMidi },
+      target: { letter: tAbs % 7, acc: tAcc, midi: tMidi },
+    };
+  }
+  return null;
+}
+
+// ---------- Klang (Web Audio) ----------
+
+let ctx = null;
+function audio() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+function playTone(midi, dur = 1.1) {
+  const ac = audio();
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const t = ac.currentTime + 0.02;
+  const out = ac.createGain();
+  out.gain.setValueAtTime(0, t);
+  out.gain.linearRampToValueAtTime(0.32, t + 0.015);
+  out.gain.exponentialRampToValueAtTime(0.12, t + 0.35);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  out.connect(ac.destination);
+  // klavierähnlich: Grundton + leise Obertöne
+  [[1, 1], [2, 0.35], [3, 0.12], [4, 0.06]].forEach(([mult, amp]) => {
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = mult === 1 ? 'triangle' : 'sine';
+    o.frequency.value = f * mult;
+    g.gain.value = amp;
+    o.connect(g).connect(out);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  });
+}
+
+// ---------- Einstellungen ----------
+
+const KEY = 'uebungsheft.intervalle.v1';
+const defaults = { ivs: PRESETS.basic, dir: 'up', voice: 'bari', tempo: 3, auto: true, playTarget: true };
+let settings = { ...defaults };
+try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch {}
+const saveSettings = () => { try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {} };
+
+const $ = (s) => document.querySelector(s);
+
+$('#iv-chips').innerHTML = INTERVALS.map((i) =>
+  `<label><input type="checkbox" value="${i.id}"><span>${i.name}</span></label>`).join('');
+$('#voice-chips').innerHTML = VOICES.map((v) =>
+  `<label><input type="radio" name="voice" value="${v.id}"><span>${v.name}</span></label>`).join('');
+
+function syncUI() {
+  document.querySelectorAll('#iv-chips input').forEach((el) => { el.checked = settings.ivs.includes(el.value); });
+  document.querySelectorAll('input[name=dir]').forEach((el) => { el.checked = el.value === settings.dir; });
+  document.querySelectorAll('input[name=voice]').forEach((el) => { el.checked = el.value === settings.voice; });
+  $('#tempo').value = settings.tempo;
+  $('#tempo-out').textContent = `${settings.tempo} s`;
+  $('#auto').checked = settings.auto;
+  $('#play-target').checked = settings.playTarget;
+}
+syncUI();
+
+document.querySelector('details').addEventListener('change', () => {
+  const ivs = [...document.querySelectorAll('#iv-chips input:checked')].map((el) => el.value);
+  settings.ivs = ivs.length ? ivs : settings.ivs; // mindestens eins
+  settings.dir = $('input[name=dir]:checked').value;
+  settings.voice = $('input[name=voice]:checked').value;
+  settings.tempo = Number($('#tempo').value);
+  settings.auto = $('#auto').checked;
+  settings.playTarget = $('#play-target').checked;
+  saveSettings();
+  syncUI();
+});
+$('#tempo').addEventListener('input', (e) => { $('#tempo-out').textContent = `${e.target.value} s`; });
+document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => {
+  settings.ivs = [...PRESETS[b.dataset.preset]];
+  saveSettings();
+  syncUI();
+}));
+
+// ---------- Ablauf ----------
+
+const cardEl = $('#card');
+const bar = $('#bar');
+let current = null;
+let count = 0;
+let running = false;
+let timer = null;
+const REVEAL_MS = 1400;
+
+const arrow = (dir) => (dir > 0 ? '↑' : '↓');
+
+function clearTimer() { clearTimeout(timer); timer = null; }
+
+function render(card) {
+  cardEl.classList.remove('idle');
+  $('#f-dir').textContent = arrow(card.dir);
+  $('#f-iv').textContent = card.iv.name;
+  $('#f-from').innerHTML = `${card.dir > 0 ? 'aufwärts' : 'abwärts'} von <b>${noteName(card.start)}</b>`;
+  $('#b-dir').textContent = `${noteName(card.start)} ${arrow(card.dir)}`;
+  $('#b-target').textContent = noteName(card.target);
+  $('#b-detail').textContent = `${card.iv.name} ${card.dir > 0 ? 'aufwärts' : 'abwärts'}`;
+  $('#counter').textContent = `#${count}`;
+}
+
+function startBar(ms) {
+  bar.classList.remove('run');
+  void bar.offsetWidth; // Animation neu starten
+  bar.style.animationDuration = `${ms}ms`;
+  bar.classList.add('run');
+}
+
+function stopBar() {
+  bar.classList.remove('run');
+}
+
+function showNext() {
+  clearTimer();
+  const voice = VOICES.find((v) => v.id === settings.voice);
+  const card = makeCard(settings.ivs, settings.dir, voice, current);
+  if (!card) {
+    $('#f-iv').textContent = 'Keine passende Karte – Stimmlage oder Intervalle ändern';
+    return;
+  }
+  const swap = () => {
+    current = card;
+    count++;
+    cardEl.classList.remove('out', 'flipped', 'in');
+    void cardEl.offsetWidth;
+    render(card);
+    cardEl.classList.add('in');
+    playTone(card.start.midi);
+    if (running) {
+      const ms = settings.tempo * 1000;
+      startBar(ms);
+      timer = setTimeout(reveal, ms);
+    } else {
+      stopBar();
+    }
+  };
+  if (current) {
+    cardEl.classList.add('out');
+    timer = setTimeout(swap, 260);
+  } else {
+    swap();
+  }
+}
+
+function reveal() {
+  clearTimer();
+  if (!current) return;
+  stopBar();
+  cardEl.classList.add('flipped');
+  if (settings.playTarget) playTone(current.target.midi, 1.2);
+  if (running) timer = setTimeout(showNext, REVEAL_MS);
+}
+
+function setRunning(on) {
+  running = on && settings.auto;
+  $('#play').textContent = running ? 'Pause' : current ? 'Weiter' : 'Start';
+}
+
+function togglePlay() {
+  audio();
+  if (running) {
+    clearTimer();
+    stopBar();
+    setRunning(false);
+    return;
+  }
+  setRunning(true);
+  if (!current || cardEl.classList.contains('flipped')) showNext();
+  else {
+    // pausierte Vorderseite: Ton wiederholen und Zeit neu starten
+    playTone(current.start.midi);
+    if (running) { startBar(settings.tempo * 1000); timer = setTimeout(reveal, settings.tempo * 1000); }
+  }
+}
+
+function tapCard() {
+  audio();
+  if (!current) { togglePlay(); return; }
+  if (cardEl.classList.contains('flipped')) showNext();
+  else reveal();
+}
+
+function replay() {
+  if (!current) return;
+  const flipped = cardEl.classList.contains('flipped');
+  playTone(flipped ? current.target.midi : current.start.midi);
+}
+
+$('#play').addEventListener('click', togglePlay);
+$('#next').addEventListener('click', () => { audio(); showNext(); });
+$('#replay').addEventListener('click', replay);
+cardEl.addEventListener('click', tapCard);
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); audio(); showNext(); }
+  else if (e.key === 'Enter') { e.preventDefault(); tapCard(); }
+  else if (e.key === 'r' || e.key === 'R') replay();
+});
+</script>
+</body>
+</html>
